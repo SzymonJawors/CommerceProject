@@ -1,0 +1,90 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+{% if messages %}
+        <div id="alert-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+<h2>{{ listing.title }}</h2>
+<p><strong>Category:</strong> {{ listing.category }}</p>
+<p><strong>Description:</strong> {{ listing.description }}</p>
+<p><strong>Starting Bid:</strong> ${{ listing.starting_bid }}</p>
+
+{% if highest_bid %}
+    <p><strong>Current Price:</strong> ${{ highest_bid.amount }} by {{ highest_bid_user.username }}</p>
+{% else %}
+    <p><strong>Current Price:</strong> ${{ listing.starting_bid }} (No bids yet)</p>
+{% endif %}
+
+<p><strong>Created By:</strong> {{ listing.creator.username }}</p>
+
+<hr>
+
+{% if user.is_authenticated %}
+    {% if is_in_watchlist %}
+        <a href="{% url 'toggle_watchlist' listing.id %}" class="btn btn-danger">Remove from Watchlist</a>
+    {% else %}
+        <a href="{% url 'toggle_watchlist' listing.id %}" class="btn btn-primary">Add to Watchlist</a>
+    {% endif %}
+{% endif %}
+
+{% if is_closed %}
+    <p><strong>Status:</strong> Auction Closed</p>
+
+    {% if has_won %}
+        <p><strong>You have won this auction!</strong></p>
+    {% else %}
+        <p><strong>Sorry, you did not win this auction.</strong></p>
+    {% endif %}
+{% else %}
+    <p><strong>Status:</strong> Auction Active</p>
+{% endif %}
+
+{% if user.is_authenticated %}
+<h4>Place a Bid:</h4>
+    <form method="post" action="{% url 'place_bid' listing.id %}">
+    {% csrf_token %}
+        <label for="bid_amount">Bid Amount:</label>
+        <input type="number" name="bid_amount" step="0.01" min="{{ listing.starting_bid }}" required>
+        <button type="submit" class="btn btn-primary">Place Bid</button>
+    </form>
+    <h4>Add a Comment:</h4>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Post Comment</button>
+    </form>
+
+{% endif %}
+
+<h3>Comments:</h3>
+{% if comments %}
+    <ul>
+        {% for comment in comments %}
+            <li><strong>{{ comment.user.username }}:</strong> {{ comment.content }} <small>({{ comment.created_at }})</small></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No comments yet.</p>
+{% endif %}
+
+{% if user == listing.creator %}
+    <hr>
+    <h4>Close Auction:</h4>
+    <form method="post" action="{% url 'close_auction' listing.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Close Auction</button>
+    </form>
+{% endif %}
+
+{% endblock %}
