@@ -75,5 +75,3 @@ Jest to system aukcyjny zbudowany w Django, w którym użytkownicy mogą licytow
 
 1. **Python 3.x** 
 2. **Django**
-3. **Markdown2**
-
